@@ -1,0 +1,133 @@
+{% load static %}
+{% block head %}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Shop Homepage - Start Bootstrap Template</title>
+    <!-- Favicon-->
+    {% comment %} 
+    <!-- Bootstrap icons-->
+    
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/styles.css" rel="stylesheet" /> {% endcomment %}
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static "css/homestyle.css" %}">
+
+    <script>
+        var imagePath = "{% static 'assets/images.png' %}";
+        var csrf_token = "{{ csrf_token }}";
+        var role="{{user_role}}"
+    </script>
+
+</head>
+{% endblock head %}
+{% block body %}
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" >CRM  <span class="badge bg-dark text-white ms-1 rounded-pill">{{request.user.username}}</span><span class="badge bg-danger text-white ms-1 rounded-pill">{{user_role}}</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item"><a class="nav-link active" aria-current="page">Agents</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Search</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                      <li><input type="text" name="searchAgent" placeholder="Search for agents"/></li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li><a class="dropdown-item" onclick="toggleSelection(event)">Name</a></li>
+                      <li><a class="dropdown-item" onclick="toggleSelection(event)">Role</a></li>
+                      <li><a class="dropdown-item" onclick="toggleSelection(event)">Country</a></li>
+                      <li><a class="dropdown-item" onclick="toggleSelection(event)">Age</a></li>
+                    </ul>
+                  </li>
+            </ul>
+ 
+           
+             <div class="d-flex">
+                {% if user_role == 'Admin' or user_role == 'Developer' %}
+                <button id="addContainerBtn" class="btn btn-outline-dark" type="submit">
+                    <i class="bi bi-person-plus-fill me-1"></i>
+                    Add Agent
+                </button>
+                {% endif %}
+                <a href="{% url "login:logout" %}" class="btn btn-outline-dark" type="submit">
+                    <i class="bi bi-box-arrow-right"></i>
+                    logout
+                </a>
+                    {% comment %} <span class="badge bg-dark text-white ms-1 rounded-pill">0</span> {% endcomment %}
+                </button>
+            </div>
+           
+        </div>
+    </div>
+</nav>
+<!-- Header-->
+<!-- Section-->
+<section class="py-5">
+
+    <div class="container px-4 px-lg-5 mt-5">
+        <div id="AgentsContainers" class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            {% if not  agents %}
+            <img id="emptybox" src="{% static "assets/empty-box-1.png" %}"/>
+            {% endif %}
+            {% for agent in agents %}
+            <div id="AgentContainer{{agent.id}}" class="col mb-5">
+                <div class="card h-100">
+                    <!-- Role -->
+                    {% if user_role == 'Admin' %}
+                            <select onchange="rolechange(event)" name="role" class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">
+                                {% for value, display in role_choices %}
+                                    <option value="{{ value }}" {% if agent.role.type == value %}selected{% endif %}>{{ display }}</option>
+                                {% endfor %}
+                            </select>
+                   {% else %}
+                            <span name="role" class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">
+                                {{ agent.role.type }}
+                            </span>
+                    {% endif %}
+                                        
+                    <!-- Image -->
+                    <img class="card-img-top" src="{% static 'assets/images.png' %}" alt="..." width="450" height="200" />
+                    <!-- Details -->
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <!-- Info -->
+                            <h6 class="fw-bolder"><span name="id">ID: {{ agent.id }}</span></h6>
+                            <span  class="fw-bolder" {% if user_role == 'Admin' %} contentEditable="true" {% endif %}  name="firstname">{{ agent.first_name }}</span>
+                            <span class="fw-bolder" {% if user_role == 'Admin' %} contentEditable="true" {% endif %}  name="lastname">{{ agent.last_name }}</span>
+                            <h6><span name="country" class="fw-bolder" {% if user_role == 'Admin' %} contentEditable="true" {% endif %} >{{ agent.country }}</span></h6>
+                            <hr/>
+                            <strong><span class="balance" {% if user_role == 'Admin' %} contentEditable="true" {% endif %}  name="age">{{ agent.age }} </span><span class="age"> Years</span></strong>
+                            <br/>
+                            <span class="currency">$</span>
+                            <span class="balance" {% if user_role == 'Admin' %} contentEditable="true" {% endif %}   name="balance">{{ agent.balance }}</span>
+                        </div>
+                    </div>
+                    <!-- Product actions -->
+                    {% if user_role == 'Admin' %}
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent" style="display:flex;justify-content: space-between;">
+                        <div class="text-center"><button onclick='editAgent(event,{{ agent.id }})' class="btn btn-outline-dark mt-auto">Edit</button></div>
+                        <div class="text-center" onclick='deleteAgent({{ agent.id }})'><button class="btn btn-outline-dark mt-auto">Delete</button></div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+                {% endfor %}
+            </div>
+    </div>
+</section>
+
+<!-- Bootstrap core JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core theme JS-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src=" {% static "js/script.js" %}"></script>
+</body>
+
+{% endblock body %}
